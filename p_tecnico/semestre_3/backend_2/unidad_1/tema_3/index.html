@@ -659,36 +659,66 @@
 
     <!-- Script de navegación entre secciones — NO MODIFICAR -->
     <script>
+        // Utilidades de acceso seguro al DOM: registran el problema en consola
+        // en lugar de lanzar un error opaco que rompa el resto del script.
+        function ovaGetEl(id) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.error(`[OVA] No se encontró el elemento con id "${id}"; se omite la acción para no romper la página.`);
+            }
+            return el;
+        }
+        function ovaGetQuery(selector) {
+            const el = document.querySelector(selector);
+            if (!el) {
+                console.error(`[OVA] No se encontró ningún elemento para el selector "${selector}"; se omite la acción.`);
+            }
+            return el;
+        }
+        function ovaSafe(label, fn) {
+            try {
+                return fn();
+            } catch (err) {
+                console.error(`[OVA] Error inesperado en "${label}":`, err);
+            }
+        }
+
         // Navegación desktop (sidebar)
         document.querySelectorAll('.sidebar-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                const target = this.dataset.target;
+                const pane = ovaGetEl(this.dataset.target);
+                if (!pane) return;
                 document.querySelectorAll('.content-pane').forEach(p => p.classList.remove('active'));
                 document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-                document.getElementById(target).classList.add('active');
+                pane.classList.add('active');
                 this.classList.add('active');
             });
         });
 
         // Navegación mobile (select)
-        document.getElementById('mobile-nav').addEventListener('change', function() {
-            document.querySelectorAll('.content-pane').forEach(p => p.classList.remove('active'));
-            document.getElementById(this.value).classList.add('active');
-        });
+        const mobileNav = ovaGetEl('mobile-nav');
+        if (mobileNav) {
+            mobileNav.addEventListener('change', function() {
+                const pane = ovaGetEl(this.value);
+                if (!pane) return;
+                document.querySelectorAll('.content-pane').forEach(p => p.classList.remove('active'));
+                pane.classList.add('active');
+            });
+        }
 
         // Acordeones
         document.querySelectorAll('.accordion-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const targetId = this.dataset.target;
-                const panel = document.querySelector(targetId);
+                const panel = ovaGetQuery(this.dataset.target);
+                if (!panel) return;
                 const icon = this.querySelector('span:last-child');
                 if (panel.classList.contains('hidden')) {
                     panel.classList.remove('hidden');
-                    icon.textContent = '➖';
+                    if (icon) icon.textContent = '➖';
                 } else {
                     panel.classList.add('hidden');
-                    icon.textContent = '➕';
+                    if (icon) icon.textContent = '➕';
                 }
             });
         });
@@ -738,7 +768,7 @@
         ];
 
         // Renderizado del quiz — NO MODIFICAR
-        const quizContainer = document.getElementById('quiz-container');
+        const quizContainer = ovaGetEl('quiz-container');
         quizData.forEach((item, index) => {
             const div = document.createElement('div');
             div.classList.add('mb-6');
@@ -753,7 +783,7 @@
                     `).join('')}
                 </div>
             `;
-            quizContainer.appendChild(div);
+            if (quizContainer) quizContainer.appendChild(div);
         });
 
         document.querySelectorAll('.quiz-option').forEach(opt => {
@@ -764,13 +794,15 @@
             });
         });
 
-        document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+        const submitBtn = ovaGetEl('submit-quiz-btn');
+        if (submitBtn) submitBtn.addEventListener('click', () => {
             let score = 0;
             quizData.forEach((item, index) => {
                 const selected = document.querySelector(`.quiz-option.selected[data-question="${index}"]`);
                 if (selected && parseInt(selected.dataset.option) === item.correct) score++;
             });
-            const result = document.getElementById('quiz-result');
+            const result = ovaGetEl('quiz-result');
+            if (!result) return;
             const pct = Math.round((score / quizData.length) * 100);
             result.textContent = `Obtuviste ${score} de ${quizData.length} (${pct}%)`;
             result.className = `mt-4 text-lg font-bold ${pct >= 60 ? 'text-green-700' : 'text-red-600'}`;
@@ -787,6 +819,9 @@
          SCRIPTS DE ACTIVIDADES INTERACTIVAS
          ============================================= -->
     <script>
+        function ovaSetText(id, value) { const el = ovaGetEl(id); if (el) el.textContent = value; }
+        function ovaSetWidth(id, value) { const el = ovaGetEl(id); if (el) el.style.width = value; }
+
         // Sistema de puntos y progreso
         let totalPuntos = 0;
         let misionesCompletadas = 0;
@@ -794,28 +829,30 @@
 
         function actualizarPuntos(puntos) {
             totalPuntos += puntos;
-            document.getElementById('total-puntos').textContent = totalPuntos;
+            ovaSetText('total-puntos', totalPuntos);
             
             misionesCompletadas++;
             const progreso = (misionesCompletadas / totalMisiones) * 100;
-            document.getElementById('progress-bar').style.width = progreso + '%';
-            document.getElementById('progreso-texto').textContent = Math.round(progreso);
+            ovaSetWidth('progress-bar', progreso + '%');
+            ovaSetText('progreso-texto', Math.round(progreso));
             
             // Actualizar nivel
             if (progreso >= 100) {
-                document.getElementById('nivel-actual').textContent = 'Experto';
-                document.getElementById('insignia-final').classList.remove('hidden');
+                ovaSetText('nivel-actual', 'Experto');
+                const insignia = ovaGetEl('insignia-final');
+                if (insignia) insignia.classList.remove('hidden');
             } else if (progreso >= 75) {
-                document.getElementById('nivel-actual').textContent = 'Avanzado';
+                ovaSetText('nivel-actual', 'Avanzado');
             } else if (progreso >= 50) {
-                document.getElementById('nivel-actual').textContent = 'Intermedio';
+                ovaSetText('nivel-actual', 'Intermedio');
             } else if (progreso >= 25) {
-                document.getElementById('nivel-actual').textContent = 'Principiante+';
+                ovaSetText('nivel-actual', 'Principiante+');
             }
         }
 
         function mostrarFeedback(elementoId, mensaje, esCorrecto) {
-            const feedback = document.getElementById(elementoId);
+            const feedback = ovaGetEl(elementoId);
+            if (!feedback) return;
             feedback.classList.remove('hidden');
             feedback.textContent = mensaje;
             feedback.className = `mt-3 text-sm font-semibold ${esCorrecto ? 'text-green-700' : 'text-red-600'}`;
@@ -859,7 +896,8 @@
 
         // Misión 3: Offset
         function verificarOffset() {
-            const input = document.getElementById('offset-input');
+            const input = ovaGetEl('offset-input');
+            if (!input) return;
             const valor = parseInt(input.value);
             const esCorrecto = valor === 20;
             
@@ -902,8 +940,8 @@
                 actividadesEstado[id] = true;
                 actividadesCompletadas++;
                 puntosActividades += puntos;
-                document.getElementById('puntos-actividades').textContent = puntosActividades;
-                document.getElementById('insignias-actividades').textContent = actividadesCompletadas;
+                ovaSetText('puntos-actividades', puntosActividades);
+                ovaSetText('insignias-actividades', actividadesCompletadas);
                 
                 alert(`¡Actividad ${id} completada! +${puntos} puntos ⭐`);
             } else {
