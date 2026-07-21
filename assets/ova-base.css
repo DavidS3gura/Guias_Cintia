@@ -1,0 +1,89 @@
+/* =============================================
+   ESTILOS BASE COMPARTIDOS — NO MODIFICAR
+   Layout, sidebar, navegación, acordeones y quiz
+   comunes a todos los OVAs. Cargado por cada
+   index.html mediante <link rel="stylesheet">.
+   Los estilos propios de cada OVA van en el
+   bloque <style> "ESTILOS PERSONALIZADOS".
+   ============================================= */
+body {
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+html {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+aside.w-64 {
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+@media (min-width: 768px) {
+    main.flex-1 { margin-left: 16rem; }
+}
+.md\:hidden.mb-6 {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background-color: #f8fafc;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+@media (max-width: 767px) {
+    main.flex-1 {
+        padding-top: 12rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+    * { box-sizing: border-box; }
+    body, html, main, .accordion-panel, .content-section {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    pre { overflow-x: auto; max-width: 100%; }
+    h2 { font-size: 1.5rem !important; }
+    h3 { font-size: 1.25rem !important; }
+    h4 { font-size: 1.125rem !important; }
+    .accordion-panel {
+        overflow-x: hidden;
+        max-width: 100%;
+        padding: 0.5rem !important;
+    }
+    .content-section {
+        overflow-x: hidden;
+        max-width: 100%;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    .speech-controls { flex-wrap: wrap; gap: 0.5rem; }
+    .speech-controls button { font-size: 0.75rem; padding: 0.25rem 0.75rem; }
+}
+.sidebar-link {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+.sidebar-link.active, .sidebar-link:hover {
+    background-color: #e6f4ea;
+    color: #166534;
+    border-left-color: #22c55e;
+}
+.content-pane {
+    display: none;
+    animation: fadeIn 0.5s ease-in-out;
+}
+.content-pane.active { display: block; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.quiz-option:hover { background-color: #f0fdf4; }
+.quiz-option.selected {
+    background-color: #dcfce7;
+    border-color: #22c55e;
+}
+.accordion-btn { cursor: pointer; }
+.accordion-panel { transition: all 0.3s ease; }
