@@ -15,6 +15,9 @@ cintia-web-ovas/
 ├── README.md               ← Estás aquí
 ├── context.md              ← Instrucciones para la IA (léelas antes de crear un OVA)
 ├── PROMPT_GUIDE.md         ← Guía paso a paso para crear OVAs con IA
+├── assets/                 ← Recursos compartidos por todos los OVAs (NO duplicar)
+│   ├── ova-base.css        ← Estilos base (layout, sidebar, acordeones, quiz)
+│   └── ova-core.js         ← Navegación, acordeones y motor del quiz
 ├── template/               ← Plantilla vacía oficial — punto de partida para nuevos OVAs
 │   ├── index.html
 │   └── img/
@@ -29,6 +32,12 @@ cintia-web-ovas/
 ```
 
 > 🔁 **El repositorio crece agregando carpetas que sigan esta convención.** No hace falta actualizar este README al añadir un nuevo semestre, programa, curso o OVA: basta con respetar el patrón de nombres anterior.
+
+> 📦 **Recursos compartidos (`assets/`):** los estilos base y la lógica común (navegación, acordeones y quiz) viven **una sola vez** en `assets/ova-base.css` y `assets/ova-core.js`. Cada `index.html` los referencia con una ruta relativa hacia la raíz según su profundidad. Ejemplos:
+> - `template/index.html` → `../assets/…`
+> - `p_tecnico/semestre_3/backend_2/unidad_1/tema_1/index.html` → `../../../../../assets/…`
+>
+> Al crear un OVA nuevo, ajusta la cantidad de `../` según cuántas carpetas lo separen de la raíz. **No copies estos estilos ni scripts dentro del `index.html`.**
 
 ---
 

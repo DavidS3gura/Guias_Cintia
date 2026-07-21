@@ -66,6 +66,9 @@ Para otras materias, los elementos interactivos deben igualmente funcionar sin e
 
 ```
 cintia-web-ovas/
+├── assets/                      # Recursos compartidos por TODOS los OVAs (no duplicar)
+│   ├── ova-base.css             # Estilos base: layout, sidebar, acordeones, quiz
+│   └── ova-core.js              # Navegación, acordeones y motor del quiz
 ├── template/                    # Plantilla vacía lista para usar como punto de partida
 │   └── index.html
 ├── semestre_1/
@@ -169,10 +172,27 @@ Este plugin no se debe omitir, modificar ni mover de posición.
 
 > ⚠️ El plugin de accesibilidad ya incluye un componente de lectura en voz alta. Por esto, **NO se deben agregar controles de voz propios** (`speech-controls`, botones Leer/Pausar/Detener, ni el script de `SpeechSynthesis`) en los nuevos OVAs. La plantilla `template/index.html` ya refleja esto.
 
+### Recursos compartidos (`assets/`) — NO duplicar
+
+Los estilos base y la lógica común de los OVAs viven **una sola vez** en la carpeta `assets/` de la raíz:
+
+- **`assets/ova-base.css`**: estilos base (layout, sidebar, header mobile, acordeones, quiz). Reemplaza el antiguo bloque `<style>` "ESTILOS BASE — NO MODIFICAR".
+- **`assets/ova-core.js`**: navegación (sidebar + mobile), acordeones y motor del quiz. Reemplaza los scripts de navegación y de renderizado del quiz.
+
+Reglas:
+
+1. **Nunca** copies estos estilos ni scripts dentro del `index.html`. Cada OVA solo los **referencia**:
+   - `<link rel="stylesheet" href="[ruta]/assets/ova-base.css">` en el `<head>`.
+   - `<script src="[ruta]/assets/ova-core.js"></script>` al final del `<body>`, **después** del `<script>` que define `quizData` y **antes** del plugin de accesibilidad.
+2. `[ruta]` es la ruta relativa hacia la raíz según la profundidad del OVA. Ejemplos: `template/` usa `../assets/…`; un OVA en `p_tecnico/semestre_3/backend_2/unidad_1/tema_1/` usa `../../../../../assets/…`. Ajusta la cantidad de `../` según cuántas carpetas lo separen de la raíz.
+3. El quiz se alimenta de la variable global `quizData` (arreglo de `{ question, options, correct }`) que cada OVA define en un `<script>` propio antes de cargar `ova-core.js`. El renderizado, la selección y la calificación los maneja `ova-core.js`.
+4. Los estilos y scripts **propios** de cada OVA (badges, tarjetas, simuladores, drag & drop, etc.) sí van dentro del `index.html`, en el bloque `<style>` "ESTILOS PERSONALIZADOS" y en el `<script>` "SCRIPTS DE ACTIVIDADES INTERACTIVAS".
+
 ### Proceso para crear un nuevo OVA
 
 1. Tomar como base la carpeta **`template/`** del repositorio (`template/index.html`), que es la plantilla vacía oficial con toda la estructura base lista.
 2. Copiar la carpeta `template/` y renombrarla según el nuevo tema (ej: `semestre_1/tecnico/matematicas/trigonometria/`).
-3. Reemplazar únicamente el contenido de las secciones **Contenido** y **Actividades**, siguiendo las reglas de gamificación obligatorias.
-4. Verificar que el logo, créditos, navegación y estilos globales permanezcan intactos.
-5. Ajustar los textos de navegación (nombres de secciones en el menú) solo si el tema lo requiere, sin alterar el estilo visual.
+3. Ajustar la ruta relativa de `assets/ova-base.css` y `assets/ova-core.js` según la profundidad de la nueva carpeta (ver "Recursos compartidos").
+4. Reemplazar únicamente el contenido de las secciones **Contenido** y **Actividades**, siguiendo las reglas de gamificación obligatorias.
+5. Verificar que el logo, créditos, navegación y estilos globales permanezcan intactos.
+6. Ajustar los textos de navegación (nombres de secciones en el menú) solo si el tema lo requiere, sin alterar el estilo visual.
