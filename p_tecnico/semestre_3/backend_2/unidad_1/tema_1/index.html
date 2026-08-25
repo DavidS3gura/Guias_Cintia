@@ -728,36 +728,66 @@ app.listen(3000);</code></pre>
 
     <!-- Script de navegación entre secciones — NO MODIFICAR -->
     <script>
+        // Utilidades de acceso seguro al DOM: registran el problema en consola
+        // en lugar de lanzar un error opaco que rompa el resto del script.
+        function ovaGetEl(id) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.error(`[OVA] No se encontró el elemento con id "${id}"; se omite la acción para no romper la página.`);
+            }
+            return el;
+        }
+        function ovaGetQuery(selector) {
+            const el = document.querySelector(selector);
+            if (!el) {
+                console.error(`[OVA] No se encontró ningún elemento para el selector "${selector}"; se omite la acción.`);
+            }
+            return el;
+        }
+        function ovaSafe(label, fn) {
+            try {
+                return fn();
+            } catch (err) {
+                console.error(`[OVA] Error inesperado en "${label}":`, err);
+            }
+        }
+
         // Navegación desktop (sidebar)
         document.querySelectorAll('.sidebar-link').forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
-                const target = this.dataset.target;
+                const pane = ovaGetEl(this.dataset.target);
+                if (!pane) return;
                 document.querySelectorAll('.content-pane').forEach(p => p.classList.remove('active'));
                 document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-                document.getElementById(target).classList.add('active');
+                pane.classList.add('active');
                 this.classList.add('active');
             });
         });
 
         // Navegación mobile (select)
-        document.getElementById('mobile-nav').addEventListener('change', function() {
-            document.querySelectorAll('.content-pane').forEach(p => p.classList.remove('active'));
-            document.getElementById(this.value).classList.add('active');
-        });
+        const mobileNav = ovaGetEl('mobile-nav');
+        if (mobileNav) {
+            mobileNav.addEventListener('change', function() {
+                const pane = ovaGetEl(this.value);
+                if (!pane) return;
+                document.querySelectorAll('.content-pane').forEach(p => p.classList.remove('active'));
+                pane.classList.add('active');
+            });
+        }
 
         // Acordeones
         document.querySelectorAll('.accordion-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const targetId = this.dataset.target;
-                const panel = document.querySelector(targetId);
+                const panel = ovaGetQuery(this.dataset.target);
+                if (!panel) return;
                 const icon = this.querySelector('span:last-child');
                 if (panel.classList.contains('hidden')) {
                     panel.classList.remove('hidden');
-                    icon.textContent = '➖';
+                    if (icon) icon.textContent = '➖';
                 } else {
                     panel.classList.add('hidden');
-                    icon.textContent = '➕';
+                    if (icon) icon.textContent = '➕';
                 }
             });
         });
@@ -797,7 +827,7 @@ app.listen(3000);</code></pre>
         ];
 
         // Renderizado del quiz — NO MODIFICAR
-        const quizContainer = document.getElementById('quiz-container');
+        const quizContainer = ovaGetEl('quiz-container');
         quizData.forEach((item, index) => {
             const div = document.createElement('div');
             div.classList.add('mb-6');
@@ -812,7 +842,7 @@ app.listen(3000);</code></pre>
                     `).join('')}
                 </div>
             `;
-            quizContainer.appendChild(div);
+            if (quizContainer) quizContainer.appendChild(div);
         });
 
         document.querySelectorAll('.quiz-option').forEach(opt => {
@@ -823,13 +853,15 @@ app.listen(3000);</code></pre>
             });
         });
 
-        document.getElementById('submit-quiz-btn').addEventListener('click', () => {
+        const submitBtn = ovaGetEl('submit-quiz-btn');
+        if (submitBtn) submitBtn.addEventListener('click', () => {
             let score = 0;
             quizData.forEach((item, index) => {
                 const selected = document.querySelector(`.quiz-option.selected[data-question="${index}"]`);
                 if (selected && parseInt(selected.dataset.option) === item.correct) score++;
             });
-            const result = document.getElementById('quiz-result');
+            const result = ovaGetEl('quiz-result');
+            if (!result) return;
             const pct = Math.round((score / quizData.length) * 100);
             result.textContent = `Obtuviste ${score} de ${quizData.length} (${pct}%)`;
             result.className = `mt-4 text-lg font-bold ${pct >= 60 ? 'text-green-700' : 'text-red-600'}`;
@@ -840,6 +872,9 @@ app.listen(3000);</code></pre>
          SCRIPTS DE ACTIVIDADES INTERACTIVAS
          ============================================= -->
     <script>
+        function ovaSetText(id, value) { const el = ovaGetEl(id); if (el) el.textContent = value; }
+        function ovaSetWidth(id, value) { const el = ovaGetEl(id); if (el) el.style.width = value; }
+
         // ==================== MISIÓN 1: Síntomas de código desorganizado ====================
         const symptomsData = [
             { symptom: "Código duplicado en múltiples archivos", consequence: "Difícil de mantener, un cambio requiere modificar varios lugares" },
@@ -850,7 +885,7 @@ app.listen(3000);</code></pre>
         ];
         
         let symptomsScore = 0;
-        const symptomsContainer = document.getElementById('reveal-symptoms');
+        const symptomsContainer = ovaGetEl('reveal-symptoms');
         
         symptomsData.forEach((item, index) => {
             const btn = document.createElement('button');
@@ -862,11 +897,11 @@ app.listen(3000);</code></pre>
                     this.className = 'w-full text-left p-3 bg-green-50 border border-green-400 rounded-lg text-sm';
                     this.dataset.revealed = 'true';
                     symptomsScore++;
-                    document.getElementById('symptoms-score').textContent = symptomsScore;
-                    document.getElementById('symptoms-progress').style.width = `${(symptomsScore / 5) * 100}%`;
+                    ovaSetText('symptoms-score', symptomsScore);
+                    ovaSetWidth('symptoms-progress', `${(symptomsScore / 5) * 100}%`);
                 }
             });
-            symptomsContainer.appendChild(btn);
+            if (symptomsContainer) symptomsContainer.appendChild(btn);
         });
 
         // ==================== MISIÓN 2: Drag and Drop de capas ====================
@@ -878,10 +913,11 @@ app.listen(3000);</code></pre>
         ];
         
         let layersScore = 0;
-        const layersContainer = document.getElementById('drag-drop-layers');
+        const layersContainer = ovaGetEl('drag-drop-layers');
         let currentLayerIndex = 0;
         
         function renderLayerQuestion() {
+            if (!layersContainer) return;
             if (currentLayerIndex >= layersData.length) {
                 layersContainer.innerHTML = `<p class="text-green-700 font-bold text-center">🎉 ¡Completaste todas las asociaciones!</p>`;
                 return;
@@ -904,8 +940,8 @@ app.listen(3000);</code></pre>
                     const answer = this.dataset.answer;
                     if (answer === current.layer) {
                         layersScore++;
-                        document.getElementById('layers-score').textContent = layersScore;
-                        document.getElementById('layers-progress').style.width = `${(layersScore / 4) * 100}%`;
+                        ovaSetText('layers-score', layersScore);
+                        ovaSetWidth('layers-progress', `${(layersScore / 4) * 100}%`);
                         this.className = 'layer-option p-2 bg-green-100 border border-green-500 rounded text-sm font-semibold';
                         this.textContent = `✅ ${answer}`;
                         currentLayerIndex++;
@@ -933,9 +969,10 @@ app.listen(3000);</code></pre>
         
         let flowScore = 0;
         let currentFlowOrder = 1;
-        const flowContainer = document.getElementById('order-flow');
+        const flowContainer = ovaGetEl('order-flow');
         
         function renderFlowQuestion() {
+            if (!flowContainer) return;
             if (currentFlowOrder > 5) {
                 flowContainer.innerHTML = `<p class="text-green-700 font-bold text-center">🎉 ¡Ordenaste correctamente todo el flujo!</p>`;
                 return;
@@ -958,8 +995,8 @@ app.listen(3000);</code></pre>
                     const order = parseInt(this.dataset.order);
                     if (order === currentFlowOrder) {
                         flowScore++;
-                        document.getElementById('flow-score').textContent = flowScore;
-                        document.getElementById('flow-progress').style.width = `${(flowScore / 5) * 100}%`;
+                        ovaSetText('flow-score', flowScore);
+                        ovaSetWidth('flow-progress', `${(flowScore / 5) * 100}%`);
                         currentFlowOrder++;
                         setTimeout(renderFlowQuestion, 300);
                     } else {
@@ -984,9 +1021,10 @@ app.listen(3000);</code></pre>
         
         let middlewareScore = 0;
         let middlewareIndex = 0;
-        const middlewareContainer = document.getElementById('middleware-quiz');
+        const middlewareContainer = ovaGetEl('middleware-quiz');
         
         function renderMiddlewareQuestion() {
+            if (!middlewareContainer) return;
             if (middlewareIndex >= middlewareQuestions.length) {
                 middlewareContainer.innerHTML = `<p class="text-green-700 font-bold text-center">🎉 ¡Identificaste todos los middlewares!</p>`;
                 return;
@@ -1009,8 +1047,8 @@ app.listen(3000);</code></pre>
                     const answer = this.dataset.answer;
                     if (answer === current.answer) {
                         middlewareScore++;
-                        document.getElementById('middleware-score').textContent = middlewareScore;
-                        document.getElementById('middleware-progress').style.width = `${(middlewareScore / 4) * 100}%`;
+                        ovaSetText('middleware-score', middlewareScore);
+                        ovaSetWidth('middleware-progress', `${(middlewareScore / 4) * 100}%`);
                         middlewareIndex++;
                         setTimeout(renderMiddlewareQuestion, 300);
                     } else {
@@ -1034,7 +1072,7 @@ app.listen(3000);</code></pre>
         ];
         
         let differencesScore = 0;
-        const differencesContainer = document.getElementById('find-differences');
+        const differencesContainer = ovaGetEl('find-differences');
         
         differencesData.forEach((item, index) => {
             const btn = document.createElement('button');
@@ -1051,15 +1089,16 @@ app.listen(3000);</code></pre>
                         this.className = 'w-full text-left p-3 bg-red-50 border border-red-500 rounded text-sm';
                         this.innerHTML = `<span class="font-semibold text-red-700">❌ ${item.diff}</span><br><span class="text-red-600 text-xs">→ Esto no es una mejora</span>`;
                     }
-                    document.getElementById('differences-score').textContent = differencesScore;
-                    document.getElementById('differences-progress').style.width = `${(differencesScore / 3) * 100}%`;
+                    ovaSetText('differences-score', differencesScore);
+                    ovaSetWidth('differences-progress', `${(differencesScore / 3) * 100}%`);
                     
                     if (differencesScore >= 3) {
-                        document.getElementById('badge-final').classList.remove('hidden');
+                        const badge = ovaGetEl('badge-final');
+                        if (badge) badge.classList.remove('hidden');
                     }
                 }
             });
-            differencesContainer.appendChild(btn);
+            if (differencesContainer) differencesContainer.appendChild(btn);
         });
     </script>
 
