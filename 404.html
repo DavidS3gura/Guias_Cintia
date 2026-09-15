@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirigiendo…</title>
+    <script>
+        // Las carpetas de los OVAs se renombraron a la convencion institucional
+        // (tecnico/semestre-3/backend-2/unidad-N/slug). Este mapa mantiene
+        // funcionando los enlaces y codigos QR publicados con las rutas antiguas.
+        var SLUGS = {
+            'unidad_1/tema_1': 'unidad-1/refactorizacion-apis',
+            'unidad_1/tema_2': 'unidad-1/ruteo-avanzado-middlewares',
+            'unidad_1/tema_3': 'unidad-1/acceso-avanzado-datos',
+            'unidad_2/tema_1': 'unidad-2/autenticacion-autorizacion-apis',
+            'unidad_2/tema_2': 'unidad-2/validacion-sanitizacion-apis',
+            'unidad_2/tema_3': 'unidad-2/proteccion-api'
+        };
+        var m = location.pathname.match(/p_tecnico\/semestre_3\/backend_2\/(unidad_\d+\/tema_\d+)/);
+        if (m && SLUGS[m[1]]) {
+            location.replace('/Guias_Cintia/tecnico/semestre-3/backend-2/' + SLUGS[m[1]] + '/' + location.search + location.hash);
+        }
+    </script>
+</head>
+<body style="font-family: sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem; text-align: center;">
+    <h1>Pagina no encontrada</h1>
+    <p>El contenido que buscas pudo haber cambiado de direccion.</p>
+    <p><a href="/Guias_Cintia/">Ir al inicio de Guias CINTIA</a></p>
+    <noscript><p>Si llegaste por un enlace antiguo de un OVA, activa JavaScript para ser redirigido automaticamente.</p></noscript>
+</body>
+</html>
