@@ -9,7 +9,7 @@ Esta guía te dice exactamente qué escribirle a la IA para obtener un OVA bien 
 Empieza la conversación con la IA enviando este mensaje para que lea el archivo de contexto del repositorio:
 
 ```
-Lee el archivo context.md que está en la raíz del repositorio cintia-web-ovas.
+Lee el archivo context.md que está en la raíz de este repositorio.
 Memoriza todas las reglas que contiene. Las usarás para crear un OVA a continuación.
 ```
 
@@ -80,8 +80,10 @@ IMPORTANTE: el OVA NUNCA debe mencionar la guía ni comparar ambos recursos ("lo
 contó", "a diferencia de la guía", etc. están prohibidos). El estudiante lo vive como un recurso natural.
 
 Información del OVA:
-- Materia: [Ej: Matemáticas / Biología / Historia / Programación / etc.]
-- Semestre: [Ej: Semestre 1 / Semestre 2]
+- Programa: [Ej: tecnico / tecnologo]
+- Semestre: [Ej: semestre-1 / semestre-2]
+- Materia: [Ej: matematicas / backend-2 — slug en minúsculas-con-guiones]
+- Unidad: [Ej: unidad-1 / unidad-2]
 - Nivel: Último año de bachillerato
 - Imágenes QR de recursos: [lista los nombres de archivo, ej: img/qr-recurso-1.png]
 
@@ -96,8 +98,13 @@ MI GUÍA DE APRENDIZAJE:
 [PEGA AQUÍ EL CONTENIDO DE TU GUÍA EN MARKDOWN]
 ---
 
-Usa como base el OVA de referencia (introduccion-nodejs) y la plantilla template/index.html.
-Genera el HTML completo listo para usar.
+Usa como base la plantilla _template/index.html y crea el OVA en su ruta de 5 niveles
+(programa/semestre-N/materia/unidad-N/ova/, todo en minúsculas-con-guiones).
+Genera el HTML completo listo para usar, con Tailwind LOCAL (nunca CDN):
+<link rel="stylesheet" href="tailwind.css"> en el <head>. Luego, parado en la carpeta
+del OVA, hornea su Tailwind ejecutando:
+npx tailwindcss@3.4.17 -o tailwind.css --content "./**/*.{html,js}" --minify
+Al terminar, valida el OVA con: node scripts/validar-ova.mjs
 ```
 
 ---
@@ -186,8 +193,10 @@ Diferencias clave: pared celular, cloroplasto, vacuola
 - **La IA debe buscar en internet** para enriquecer el contenido; si no lo hace, agrégale al prompt: *"Busca información adicional en internet para enriquecer cada sección"*.
 - **Recursos externos (videos, simuladores)**: la IA insertará cards verdes donde sugiere un recurso. Tu flujo es: busca el video o recurso → dílelo al agente en el chat: *"Encontré un recurso para el recurso-ext-1. URL: [url] Título: [título]"* → el agente actualiza el archivo directamente. No necesitas copiar ni pegar código.
 - Si la IA genera el código en partes, pídele: *"Continúa generando desde donde te quedaste"*.
-- Si algo no se ve bien, di: *"Corrige [lo que está mal] siguiendo el estilo del OVA de referencia introduccion-nodejs"*.
+- Si algo no se ve bien, di: *"Corrige [lo que está mal] siguiendo el estilo de la plantilla _template"*.
 - **Nunca le pidas que cambie** el sidebar, el footer de créditos ni el plugin de accesibilidad.
+- **Nunca uses el CDN de Tailwind** (`cdn.tailwindcss.com` está descontinuado). Si el OVA se ve sin estilos, pídele: *"Re-hornea el tailwind.css del OVA con npx tailwindcss@3.4.17 -o tailwind.css --content \"./**/*.{html,js}\" --minify desde su carpeta"*.
+- Si el validador marca errores, copia el bloque "PARA CORREGIR CON UN AGENTE DE IA" que imprime y pégaselo al agente: él hará los cambios.
 
 ---
 
@@ -195,8 +204,9 @@ Diferencias clave: pared celular, cloroplasto, vacuola
 
 ```
 Tengo este OVA y necesito corregir lo siguiente: [describe el problema].
-Toma como referencia visual el OVA introduccion-nodejs y aplica los estilos y estructura del context.md.
+Toma como referencia visual la plantilla _template/index.html y aplica los estilos y estructura del context.md.
 No modifiques el sidebar, los créditos ni el plugin de accesibilidad.
+Si cambias clases de Tailwind, re-hornea el tailwind.css del OVA y valida con node scripts/validar-ova.mjs.
 
 [PEGA EL HTML DEL OVA]
 ```
@@ -207,7 +217,9 @@ No modifiques el sidebar, los créditos ni el plugin de accesibilidad.
 
 Antes de publicar o entregar el OVA, verifica que tenga:
 
+- [ ] El OVA está en su ruta de 5 niveles: `programa/semestre-N/materia/unidad-N/ova/` (minúsculas-con-guiones)
 - [ ] Logo en `img/logo.webp`
+- [ ] Tailwind local: `<link rel="stylesheet" href="tailwind.css">` en el `<head>` y el archivo `tailwind.css` horneado en la carpeta (nunca `cdn.tailwindcss.com`)
 - [ ] Las 7 secciones: Introducción, Objetivos, Contenido, Actividades, Evaluación, Recursos, Bibliografía
 - [ ] Al menos 1 elemento interactivo por sección de contenido
 - [ ] Cards de recursos externos activadas (botón con URL real y sin `opacity-50`) — dílelo al agente en el chat con la URL que encontraste
@@ -215,3 +227,4 @@ Antes de publicar o entregar el OVA, verifica que tenga:
 - [ ] Imágenes QR en `img/` para cada recurso
 - [ ] Footer con créditos de CINTIA
 - [ ] Plugin de accesibilidad como último script: `<script src="https://elens.ecodestudio.dev/elens.js"></script>`
+- [ ] `node scripts/validar-ova.mjs` dice `✅ Validación OK`

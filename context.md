@@ -46,10 +46,27 @@ Cada OVA sigue una estructura consistente:
 
 ## Tecnologías usadas
 
-- **HTML + TailwindCSS** (via CDN) para layout y estilos.
+- **HTML + TailwindCSS** para layout y estilos. **⚠️ Tailwind se usa HORNEADO LOCALMENTE, NO desde CDN** (ver "Tailwind local (obligatorio)"). Cada OVA lleva su propio `tailwind.css` en su carpeta.
 - **JavaScript vanilla** para interactividad (simuladores, acordeones, navegación, cuestionarios, etc.).
 - **Google Fonts (Poppins)** para tipografía.
 - Imágenes en formato `.webp`.
+
+## Tailwind local (obligatorio)
+
+El CDN de Tailwind (`cdn.tailwindcss.com`) **quedó descontinuado y ya no funciona**: cualquier OVA que dependa de él pierde todo su diseño. Por eso **cada OVA debe ser autónomo** y llevar su propio Tailwind horneado localmente.
+
+Reglas:
+
+- **NUNCA** usar `<script src="https://cdn.tailwindcss.com"></script>` (ni ningún CDN de Tailwind, como `tailwindcss-cdn` desde jsDelivr).
+- En el `<head>`, Tailwind se enlaza como archivo local: `<link rel="stylesheet" href="tailwind.css">`.
+- Ese `tailwind.css` se genera con la CLI oficial de Tailwind, escaneando **solo la carpeta del propio OVA** (así cada OVA es independiente de la estructura del repo). Comando estándar, ejecutado **dentro de la carpeta del OVA**:
+
+  ```bash
+  npx tailwindcss@3.4.17 -o tailwind.css --content "./**/*.{html,js}" --minify
+  ```
+
+- **Cada vez que se crea un OVA o se le agregan/quitan clases**, hay que volver a correr ese comando en su carpeta para regenerar `tailwind.css` (contiene solo las clases que ese OVA usa, incluidas las generadas desde el JavaScript).
+- El `<style>` propio del OVA y el resto del `<head>` (fuentes, plugin de accesibilidad) se mantienen igual.
 
 ## Reglas para interactividad (OVAs de programación)
 
@@ -62,25 +79,42 @@ Cuando el OVA incluye playgrounds de código JavaScript/React:
 
 Para otras materias, los elementos interactivos deben igualmente funcionar sin errores y dar retroalimentación inmediata al estudiante.
 
-## Estructura del repositorio
+## Estructura del repositorio (jerarquía obligatoria)
+
+Cada OVA vive en una ruta de **exactamente 5 niveles**: `programa/semestre/materia/unidad/ova/`.
 
 ```
-cintia-web-ovas/
-├── template/                    # Plantilla vacía lista para usar como punto de partida
-│   └── index.html
-├── semestre_1/
-└── semestre_2/
-    └── tecnico/
-        ├── backend/
-        │   ├── unidad_1/        # Introducción al backend
-        │   ├── unidad_2/        # Node.js, Express, CRUD con base de datos
-        │   └── Unidad_3/        # React: visualización, interacción, consumo de APIs
-        └── base_de_datos/       # OVA de bases de datos
+<repo>/
+├── tecnico/                                  # programa: tecnico | tecnologo
+│   └── semestre-3/                           # semestre-N
+│       └── backend-2/                        # materia (slug minúsculas-con-guiones)
+│           └── unidad-1/                      # unidad-N
+│               └── refactorizacion-apis/      # un OVA (slug)
+│                   ├── index.html
+│                   ├── tailwind.css           # Tailwind horneado local
+│                   └── img/                   # logo.webp + qr-*.png
+├── tecnologo/
+├── _template/                                # plantilla oficial
+├── 404.html                                  # redirige rutas antiguas a las nuevas (GitHub Pages)
+├── context.md · PROMPT_GUIDE.md · README.md
+└── scripts/validar-ova.mjs                   # validador de reglas
 ```
+
+Reglas de nombres: `programa` ∈ {`tecnico`, `tecnologo`}; `semestre-N` y `unidad-N` con número; `materia` y `ova` en slug minúsculas-con-guiones. El validador (`scripts/validar-ova.mjs`) rechaza cualquier OVA que no respete esta jerarquía.
+
+## Las reglas se validan automáticamente
+
+Este repositorio sigue las mismas reglas del **repositorio institucional de OVAs** (`uentucolegio/web-ovas`) e incluye el mismo validador en `scripts/validar-ova.mjs`. Antes de entregar o migrar un OVA, ejecútalo en local:
+
+```bash
+node scripts/validar-ova.mjs
+```
+
+Debe decir `✅ Validación OK`. Al migrar OVAs al repositorio institucional, GitHub Actions vuelve a ejecutar este validador en cada Pull Request: un OVA que no cumpla las reglas **no se puede fusionar** allá.
 
 ## OVA de referencia visual
 
-El OVA **`introduccion-nodejs`** (`semestre_2/tecnico/backend/unidad_2/introduccion-nodejs/`) es el estándar de referencia para estilos, estructura y comportamiento. Cualquier inconsistencia visual o de layout en otros OVAs debe corregirse tomando este OVA como modelo, independientemente de la materia.
+La carpeta **`_template/`** es el estándar de referencia para estilos, estructura y comportamiento. Cualquier inconsistencia visual o de layout debe corregirse tomando la plantilla como modelo, independientemente de la materia.
 
 ## Reglas para crear nuevos OVAs
 
@@ -167,12 +201,14 @@ Todo OVA generado debe incluir el siguiente script **antes del cierre de `</body
 
 Este plugin no se debe omitir, modificar ni mover de posición.
 
-> ⚠️ El plugin de accesibilidad ya incluye un componente de lectura en voz alta. Por esto, **NO se deben agregar controles de voz propios** (`speech-controls`, botones Leer/Pausar/Detener, ni el script de `SpeechSynthesis`) en los nuevos OVAs. La plantilla `template/index.html` ya refleja esto.
+> ⚠️ El plugin de accesibilidad ya incluye un componente de lectura en voz alta. Por esto, **NO se deben agregar controles de voz propios** (`speech-controls`, botones Leer/Pausar/Detener, ni el script de `SpeechSynthesis`) en los nuevos OVAs. La plantilla `_template/index.html` ya refleja esto.
 
 ### Proceso para crear un nuevo OVA
 
-1. Tomar como base la carpeta **`template/`** del repositorio (`template/index.html`), que es la plantilla vacía oficial con toda la estructura base lista.
-2. Copiar la carpeta `template/` y renombrarla según el nuevo tema (ej: `semestre_1/tecnico/matematicas/trigonometria/`).
+1. Tomar como base la carpeta **`_template/`** del repositorio (`_template/index.html`), que es la plantilla vacía oficial con toda la estructura base lista.
+2. Copiar la carpeta `_template/` y ubicarla en la ruta jerárquica correcta con el nombre del OVA (ej: `tecnico/semestre-1/matematicas/unidad-2/trigonometria/`).
 3. Reemplazar únicamente el contenido de las secciones **Contenido** y **Actividades**, siguiendo las reglas de gamificación obligatorias.
 4. Verificar que el logo, créditos, navegación y estilos globales permanezcan intactos.
 5. Ajustar los textos de navegación (nombres de secciones en el menú) solo si el tema lo requiere, sin alterar el estilo visual.
+6. **Hornear el Tailwind local del OVA** (paso obligatorio, ver "Tailwind local"): dentro de la carpeta del OVA, ejecutar `npx tailwindcss@3.4.17 -o tailwind.css --content "./**/*.{html,js}" --minify`. Esto genera el `tailwind.css` que da todo el diseño. Sin este paso, el OVA se ve sin estilos. Repetir el comando si luego se cambian clases.
+7. **Validar el OVA** ejecutando `node scripts/validar-ova.mjs` desde la raíz del repositorio. Debe decir `✅ Validación OK` antes de entregar o migrar el OVA al repositorio institucional.
